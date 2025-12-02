@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Article List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+<body>
+    <div class="d-flex justify-content-center align-items-center vh-100">
+        <div class="w-50 h-75 text-center">
+            <h1 class="title mb-5">Hello Board</h1>
+            <div class="nav justify-content-between">
+                <h3 class="subheading">게시글 목록</h3>
+                <a class="btn btn-success" th:href="@{/article/add}">게시글 작성</a>
+            </div>
+            <table class="table">
+                <tr th:each="article : ${page.content}">
+                    <td class="text-start"><a class="text-decoration-none text-reset" th:text="${article.title}" th:href="@{/article/content/{id}(id=${article.id})}">title</a></td>
+                </tr>
+            </table>
+            <div class="d-flex align-items-center">
+                <nav class="mx-auto" th:with="page=${page}, baseUrl='/article/list', block=5" th:if="${page != null and !page.empty}">
+                    <ul class="pagination" th:with="start=${T(java.lang.Math).floor(page.number / block) * block},
+                        last=${(start + (block - 1) < page.totalPages ? start + (block - 1) : page.totalPages - 1)}">
+                        <li class="page-item" th:classappend="${page.first} ? ' disabled'">
+                            <a class="page-link" th:href="@{${baseUrl}(page=${page.number - 1})}">&laquo;</a>
+                        </li>
+                        <li class="page-item"
+                            th:each="pageNumber : ${#numbers.sequence(start, last)}"
+                            th:classappend="${pageNumber == page.number} ? ' active'">
+                            <a class="page-link"
+                               th:text="${pageNumber + 1}"
+                               th:href="@{${baseUrl}(page=${pageNumber})}">1</a>
+                        </li>
+                        <li class="page-item" th:classappend="${page.last} ? ' disabled'">
+                            <a class="page-link" th:href="@{${baseUrl}(page=${page.number + 1})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+</body>
+</html>
