@@ -24,6 +24,11 @@ public class ArticleController {
 
     private final ArticleService articleService;
 
+    @GetMapping("/")
+    public String redirectToArticleList() {
+        return "redirect:/article/list";
+    }
+
     @GetMapping(value = "/article/list")
     public String getArticleList(@PageableDefault(page = 0, size = 15,
             sort = "time", direction = Sort.Direction.DESC) Pageable pageable, Model model) {
