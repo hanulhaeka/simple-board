@@ -16,4 +16,4 @@ RUN ./gradlew bootJar -x test
 EXPOSE 8080
 
 # 빌드된 JAR 실행
-CMD ["java", "-jar", "build/libs/*.jar"]
+CMD ["java", "-jar", "build/libs/simple-board-0.0.1-SNAPSHOT.jar"]
