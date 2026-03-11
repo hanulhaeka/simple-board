@@ -12,9 +12,14 @@
       <h1 class="title mb-5">Hello Board</h1>
       <div class="d-flex flex-column justify-content-center align-items-center">
 
-        <h3 class="subheading text-start w-75 mb-5">회원 가입</h3>
+        <h3 class="subheading text-start w-75 mb-5">로그인</h3>
 
-        <form class="w-75" th:action="@{/auth/signup}" th:object="${signupDto}" method="post">
+        <form class="w-75" th:action="@{/auth/signin}" th:object="${signinDto}" method="post">
+
+          <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+            <p th:each="err : ${#fields.globalErrors()}" th:text="${err}" class="mb-0">글로벌 오류 메시지</p>
+          </div>
+
           <div>
             <label class="form-label text-start w-100" for="userId">아이디</label>
             <input class="form-control" th:classappend="${#fields.hasErrors('userId')}? 'is-invalid'" type="text" id="userId" th:field="*{userId}">
@@ -25,7 +30,7 @@
             <input class="form-control" th:classappend="${#fields.hasErrors('password')}? 'is-invalid'" type="password" id="password" th:field="*{password}">
             <div class="text-start invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
           </div>
-          <button class="btn btn-success" type="submit">회원 가입</button>
+          <button class="btn btn-success" type="submit">로그인</button>
         </form>
       </div>
     </div>

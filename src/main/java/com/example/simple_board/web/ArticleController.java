@@ -1,8 +1,10 @@
 package com.example.simple_board.web;
 
+import com.example.simple_board.auth.SessionUser;
 import com.example.simple_board.model.dto.ArticleDto;
-import com.example.simple_board.model.dto.DeletedForm;
 import com.example.simple_board.service.ArticleService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,57 +33,60 @@ public class ArticleController {
 
     @GetMapping(value = "/article/list")
     public String getArticleList(@PageableDefault(page = 0, size = 15,
-            sort = "time", direction = Sort.Direction.DESC) Pageable pageable, Model model) {
+            sort = "time", direction = Sort.Direction.DESC) Pageable pageable, Model model, HttpServletRequest request) {
+
+        SessionUser sessionUser = request.getSession(false) != null
+                ? (SessionUser) request.getSession(false).getAttribute("loginUser")
+                : null;
+
         Page<ArticleDto> page = articleService.findAll(pageable);
         model.addAttribute("page", page);
+        model.addAttribute("sessionUser", sessionUser);
 
-        return "article-list";
+        return "article/article-list";
     }
 
     @GetMapping(value = "/article/add")
     public String getArticleForm(Model model) {
         model.addAttribute("articleDto", new ArticleDto());
 
-        return "article-add";
+        return "article/article-add";
     }
 
     @PostMapping(value = "/article/add")
-    public String addArticleForm(@Validated @ModelAttribute("articleDto") ArticleDto articleDto, BindingResult bindingResult) {
+    public String addArticleForm(@Validated @ModelAttribute("articleDto") ArticleDto articleDto, BindingResult bindingResult, HttpServletRequest request) {
 
         if (bindingResult.hasErrors()) {
-            return "article-add";
+            return "article/article-add";
         }
 
-        ArticleDto savedArticleDto = articleService.create(articleDto);
+        HttpSession session = request.getSession();
+        SessionUser loginUser = (SessionUser) session.getAttribute("loginUser");
+
+        ArticleDto savedArticleDto = articleService.create(articleDto, loginUser.getUserId());
 
         return "redirect:/article/content/" + savedArticleDto.getId();
     }
 
     @GetMapping(value = "/article/content/{id}")
-    public String getArticle(@PathVariable Long id, Model model) {
-        model.addAttribute("articleDto", articleService.findById(id));
-        DeletedForm deletedForm = new DeletedForm();
-        deletedForm.setId(id);
-        model.addAttribute("deletedForm", deletedForm);
+    public String getArticle(@PathVariable Long id, Model model, HttpServletRequest request) {
 
-        return "article-content";
+        SessionUser sessionUser = request.getSession(false) != null
+                ? (SessionUser) request.getSession(false).getAttribute("loginUser")
+                : null;
+
+        model.addAttribute("articleDto", articleService.findById(id));
+        model.addAttribute("sessionUser", sessionUser);
+
+        return "article/article-content";
     }
 
-    @PostMapping(value = "/article/delete")
-    public String deleteArticle(@Validated @ModelAttribute DeletedForm deletedForm, BindingResult bindingResult, Model model) {
+    @PostMapping(value = "/article/delete/{id}")
+    public String deleteArticle(@PathVariable Long id, HttpServletRequest request) {
 
-        if (!deletedForm.getPassword().equals(articleService.findById(deletedForm.getId()).getPassword())) {
-            bindingResult.rejectValue("password", "wrongPassword", "비밀번호가 틀렸습니다.");
-        }
+        SessionUser loginUser = (SessionUser) request.getSession().getAttribute("loginUser");
 
-        if (bindingResult.hasErrors()) {
-
-            model.addAttribute("articleDto", articleService.findById(deletedForm.getId()));
-
-            return "article-content";
-        }
-
-        articleService.deleteArticle(deletedForm.getId());
+        articleService.deleteArticle(id, loginUser.getUserId(), loginUser.getRole());
 
         return "redirect:/article/list";
     }
@@ -90,22 +95,19 @@ public class ArticleController {
     public String getArticleUpdateForm(Model model, @PathVariable Long id) {
         model.addAttribute("articleDto", articleService.findById(id));
 
-        return "article-update";
+        return "article/article-update";
     }
 
     @PostMapping(value = "/article/update")
-    public String postArticleUpdate(@Validated @ModelAttribute("articleDto") ArticleDto articleDto, BindingResult bindingResult) {
-
-
-        if (!articleDto.getPassword().equals(articleService.findById(articleDto.getId()).getPassword())) {
-            bindingResult.rejectValue("password", "wrongPassword", "비밀번호가 틀렸습니다.");
-        }
+    public String postArticleUpdate(@Validated @ModelAttribute("articleDto") ArticleDto articleDto, BindingResult bindingResult, HttpServletRequest request) {
 
         if (bindingResult.hasErrors()) {
-            return "article-update";
+            return "article/article-update";
         }
 
-        ArticleDto updatedArticleDto = articleService.update(articleDto);
+        SessionUser loginUser = (SessionUser) request.getSession().getAttribute("loginUser");
+
+        ArticleDto updatedArticleDto = articleService.update(articleDto, loginUser.getUserId(), loginUser.getRole());
 
         return "redirect:/article/content/" + updatedArticleDto.getId();
     }

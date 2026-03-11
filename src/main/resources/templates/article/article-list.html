@@ -12,9 +12,13 @@
             <h1 class="title mb-5">Hello Board</h1>
             <div class="nav justify-content-between">
                 <h3 class="subheading">게시글 목록</h3>
-                <div>
-                    <a class="btn btn-success" th:href="@{/auth/signup}">회원가입</a>
-                    <a class="btn btn-success" th:href="@{/article/add}">게시글 작성</a>
+                <div class = "d-flex ">
+                    <a th:if="${sessionUser == null}" class="btn btn-success me-2" th:href="@{/auth/signin}">로그인</a>
+                    <form th:if="${sessionUser != null}" th:action="@{/auth/logout}" method="post">
+                        <button class="btn btn-success me-2 h-100" type="submit">로그아웃</button>
+                    </form>
+                    <a th:if="${sessionUser == null}" class="btn btn-success" th:href="@{/auth/signup}">회원가입</a>
+                    <a th:if="${sessionUser != null}" class="btn btn-success" th:href="@{/article/add}">게시글 작성</a>
                 </div>
             </div>
             <table class="table">

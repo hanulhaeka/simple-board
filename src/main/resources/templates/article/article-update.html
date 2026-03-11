@@ -14,10 +14,6 @@
                 <div class="nav justify-content-between mb-3">
                     <h3 class="subheading">게시글 수정</h3>
                     <div class="d-flex align-items-start mb-3">
-                        <div class="flex-grow-1 me-2">
-                            <input class="form-control" style="width:auto" th:classappend="${#fields.hasErrors('password')}? 'is-invalid'" type="password" th:field="*{password}" placeholder="비밀번호 입력">
-                            <div class="text-start invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
-                        </div>
                         <button type="submit" class="btn btn-success">수정</button>
                     </div>
                 </div>

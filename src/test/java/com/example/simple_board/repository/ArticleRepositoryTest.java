@@ -1,13 +1,17 @@
 package com.example.simple_board.repository;
 
 
+import com.example.simple_board.config.JpaAuditingConfig;
 import com.example.simple_board.model.Article;
 
+import com.example.simple_board.model.Role;
+import com.example.simple_board.model.User;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,10 +24,13 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @DataJpaTest
+@Import(JpaAuditingConfig.class)
 public class ArticleRepositoryTest {
 
     @Autowired
     private ArticleRepository articleRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     EntityManager em;
 
@@ -31,7 +38,9 @@ public class ArticleRepositoryTest {
     @DisplayName("게시글 저장 및 조회 테스트")
     void saveAndFind() {
         //given
-        Article article = new Article("1234", "title", "content");
+        Article article = new Article("title", "content");
+        User savedUser = userRepository.save(new User("userId", "password", Role.USER));
+        article.setUser(savedUser);
 
         //when
         Article saved = articleRepository.save(article);
@@ -39,20 +48,22 @@ public class ArticleRepositoryTest {
         em.flush();
         em.clear();
 
-        Article found = articleRepository.findById(article.getId()).get();
+        Article found = articleRepository.findById(saved.getId()).get();
 
         //then
         assertThat(found.getId()).isEqualTo(article.getId());
-        assertThat(found.getPassword()).isEqualTo(article.getPassword());
         assertThat(found.getTitle()).isEqualTo(article.getTitle());
         assertThat(found.getContent()).isEqualTo(article.getContent());
+        assertThat(found.getUser().getUserId()).isEqualTo(savedUser.getUserId());
     }
 
     @Test
     @DisplayName("삭제 테스트")
     void delete() {
         //given
-        Article article = new Article("1234", "title", "content");
+        Article article = new Article("title", "content");
+        User savedUser = userRepository.save(new User("userId", "password", Role.USER));
+        article.setUser(savedUser);
         articleRepository.save(article);
         Long id = article.getId();
 
@@ -70,21 +81,23 @@ public class ArticleRepositoryTest {
     @DisplayName("수정 테스트")
     void update() {
         //given
-        Article saved = articleRepository.save(new Article("1234", "title", "content"));
+        Article article = new Article("title", "content");
+        User savedUser = userRepository.save(new User("userId", "password", Role.USER));
+        article.setUser(savedUser);
+        Article saved = articleRepository.save(article);
 
         //when
         saved.setTitle("updatedTitle");
         saved.setContent("updatedContent");
-        saved.setPassword("0000");
 
         em.flush();
         em.clear();
 
-        //then
         Article found = articleRepository.findById(saved.getId()).orElseThrow();
+
+        //then
         assertThat(found.getTitle()).isEqualTo("updatedTitle");
         assertThat(found.getContent()).isEqualTo("updatedContent");
-        assertThat(found.getPassword()).isEqualTo("0000");
     }
 
     @Test
@@ -92,11 +105,14 @@ public class ArticleRepositoryTest {
     void paging() {
         //given
         for (int i = 1; i <= 10 ; i++) {
-            articleRepository.save(new Article("password " + i, "title " + i, "content " + i));
+            User savedUser = userRepository.save(new User("userId" + i, "password" + i, Role.USER));
+            Article article = new Article("title " + i, "content " + i);
+            article.setUser(savedUser);
+            articleRepository.save(article);
         }
 
         //when
-        Pageable pageable = PageRequest.of(0, 5, Sort.by("time").descending());
+        Pageable pageable = PageRequest.of(0, 5, Sort.by("id").descending());
         Page<Article> page = articleRepository.findAll(pageable);
 
         //then
@@ -106,7 +122,7 @@ public class ArticleRepositoryTest {
         assertThat(articles.size()).isEqualTo(5);
         assertThat(articles.getFirst().getTitle()).isEqualTo("title 10");
         assertThat(articles.getFirst().getContent()).isEqualTo("content 10");
-        assertThat(articles.getFirst().getPassword()).isEqualTo("password 10");
+        assertThat(articles.getFirst().getUser().getUserId()).isEqualTo("userId10");
 
 
     }
@@ -116,7 +132,10 @@ public class ArticleRepositoryTest {
     void auditing() {
         //given
         LocalDate today = LocalDate.now();
-        Article article = articleRepository.save(new Article("1234", "title", "content"));
+        Article article = new Article("title", "content");
+        User savedUser = userRepository.save(new User("userId", "password", Role.USER));
+        article.setUser(savedUser);
+        Article saved = articleRepository.save(article);
 
         //when
         Article found = articleRepository.findById(article.getId()).orElseThrow();
