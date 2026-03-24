@@ -13,7 +13,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 
 
@@ -35,21 +38,21 @@ public class ArticleController {
         Page<ArticleDto> page = articleService.findAll(pageable);
         model.addAttribute("page", page);
 
-        return "article-list";
+        return "article/article-list";
     }
 
     @GetMapping(value = "/article/add")
     public String getArticleForm(Model model) {
         model.addAttribute("articleDto", new ArticleDto());
 
-        return "article-add";
+        return "article/article-add";
     }
 
     @PostMapping(value = "/article/add")
     public String addArticleForm(@Validated @ModelAttribute("articleDto") ArticleDto articleDto, BindingResult bindingResult) {
 
         if (bindingResult.hasErrors()) {
-            return "article-add";
+            return "article/article-add";
         }
 
         ArticleDto savedArticleDto = articleService.create(articleDto);
@@ -64,7 +67,7 @@ public class ArticleController {
         deletedForm.setId(id);
         model.addAttribute("deletedForm", deletedForm);
 
-        return "article-content";
+        return "article/article-content";
     }
 
     @PostMapping(value = "/article/delete")
@@ -78,7 +81,7 @@ public class ArticleController {
 
             model.addAttribute("articleDto", articleService.findById(deletedForm.getId()));
 
-            return "article-content";
+            return "article/article-content";
         }
 
         articleService.deleteArticle(deletedForm.getId());
@@ -90,7 +93,7 @@ public class ArticleController {
     public String getArticleUpdateForm(Model model, @PathVariable Long id) {
         model.addAttribute("articleDto", articleService.findById(id));
 
-        return "article-update";
+        return "article/article-update";
     }
 
     @PostMapping(value = "/article/update")
@@ -102,7 +105,7 @@ public class ArticleController {
         }
 
         if (bindingResult.hasErrors()) {
-            return "article-update";
+            return "article/article-update";
         }
 
         ArticleDto updatedArticleDto = articleService.update(articleDto);
