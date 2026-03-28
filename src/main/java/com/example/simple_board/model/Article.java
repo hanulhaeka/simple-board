@@ -19,8 +19,7 @@ public class Article {
     protected Article() {
     }
 
-    public Article(String password, String title, String content) {
-        this.password = password;
+    public Article(String title, String content) {
         this.title = title;
         this.content = content;
     }
@@ -28,9 +27,6 @@ public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, length = 20)
-    private String password;
 
     @Column(nullable = false, length = 100)
     private String title;
@@ -40,4 +36,8 @@ public class Article {
 
     @LastModifiedDate
     private LocalDateTime time;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }

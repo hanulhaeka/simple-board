@@ -43,4 +43,10 @@ public class AuthController {
         return "redirect:/";
 
     }
+
+    //로그인 폼 전송
+    @GetMapping("/auth/signin")
+    public String loginPage() {
+        return "auth/auth-signin";
+    }
 }
