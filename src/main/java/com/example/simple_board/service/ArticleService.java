@@ -7,6 +7,7 @@ import com.example.simple_board.model.User;
 import com.example.simple_board.model.dto.ArticleDto;
 import com.example.simple_board.repository.ArticleRepository;
 import com.example.simple_board.repository.UserRepository;
+import com.example.simple_board.security.SecurityContextUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ public class ArticleService {
 
     private final ArticleRepository articleRepository;
     private final UserRepository userRepository;
+    private final SecurityContextUserProvider securityContextUserProvider;
 
     // 전체 리스트 페이징과 정렬해서 조회
     @Transactional(readOnly = true)
@@ -100,11 +102,9 @@ public class ArticleService {
     }
 
 
-    // SecurityContextHolder 에서 User 객체 꺼내기
-    public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = authentication.getName();
 
+    public User getCurrentUser() {
+        String userId = securityContextUserProvider.getCurrentUserId();
         return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("로그인 사용자를 찾을 수 없습니다"));
     }

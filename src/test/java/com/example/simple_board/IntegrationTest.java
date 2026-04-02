@@ -1,21 +1,32 @@
 package com.example.simple_board;
 
 import com.example.simple_board.model.Article;
+import com.example.simple_board.model.Role;
+import com.example.simple_board.model.User;
 import com.example.simple_board.model.dto.ArticleDto;
 import com.example.simple_board.repository.ArticleRepository;
+import com.example.simple_board.repository.UserRepository;
+import com.example.simple_board.security.CustomUserDetails;
 import com.example.simple_board.service.ArticleService;
+import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,12 +41,30 @@ public class IntegrationTest {
     @Autowired
     ArticleRepository articleRepository;
 
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    EntityManager em;
+
     @Test
     @DisplayName("게시글 저장")
     void saveArticleTest() throws Exception {
 
+        //given
+        User user = new User("userId", "password", Role.USER);
+        userRepository.save(user);
+
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        CustomUserDetails customUserDetails = new CustomUserDetails(user.getId(), "userId", "password", authorities);
+
+
+
+        //when&then
         mockMvc.perform(post("/article/add")
-                    .param("password", "password")
+                        .with(csrf())
+                        .with(user(customUserDetails))
                     .param("title", "title")
                     .param("content", "content"))
                 .andExpect(status().is3xxRedirection())
@@ -46,10 +75,11 @@ public class IntegrationTest {
         Article article = articleRepository.findAll().get(0);
 
         assertThat(article.getId()).isNotNull();
-        assertThat(article.getPassword()).isEqualTo("password");
         assertThat(article.getTitle()).isEqualTo("title");
         assertThat(article.getContent()).isEqualTo("content");
         assertThat(article.getTime()).isNotNull();
+        assertThat(article.getUser().getId()).isEqualTo(user.getId());
+        assertThat(article.getUser().getUserId()).isEqualTo("userId");
 
     }
 
@@ -57,36 +87,48 @@ public class IntegrationTest {
     @DisplayName("게시글 조회")
     void findArticleTest() throws Exception {
 
-        Article article = new Article("password", "title", "content");
+        //given
+        Article article = new Article("title", "content");
+        User user = new User("userId", "password", Role.USER);
+        article.setUser(user);
         articleRepository.save(article);
 
+
+        //when&then
         mockMvc.perform(get("/article/content/" + article.getId()))
                 .andExpect(status().isOk())
-                .andExpect(view().name("article-content"))
+                .andExpect(view().name("article/article-content"))
                 .andExpect(model().attributeExists("articleDto"))
-                .andExpect(model().attributeExists("deletedForm"))
                 .andExpect(model().attribute("articleDto",
                         hasProperty("id", equalTo(article.getId()))))
-                .andExpect(model().attribute("articleDto",
-                        hasProperty("password", equalTo("password"))))
                 .andExpect(model().attribute("articleDto",
                         hasProperty("title", equalTo("title"))))
                 .andExpect(model().attribute("articleDto",
                         hasProperty("content", equalTo("content"))))
-                .andExpect(model().attribute("deletedForm",
-                        hasProperty("id", equalTo(article.getId()))));
+                .andExpect(model().attribute("loginUser", nullValue()));
     }
 
     @Test
     @DisplayName("게시글 수정")
     void updateArticleTest() throws Exception {
 
-        Article article = new Article("password", "title", "content");
+        //given
+        User user = new User("userId", "password", Role.USER);
+        userRepository.save(user);
+
+        Article article = new Article( "title", "content");
+        article.setUser(user);
         articleRepository.save(article);
 
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        CustomUserDetails customUserDetails = new CustomUserDetails(user.getId(), "userId", "password", authorities);
+
+        //when&then
         mockMvc.perform(post("/article/update")
+                        .with(user(customUserDetails))
+                        .with(csrf())
                     .param("id", String.valueOf(article.getId()))
-                    .param("password", "password")
                     .param("title", "updatedTitle")
                     .param("content", "updatedContent"))
                 .andExpect(status().is3xxRedirection())
@@ -102,12 +144,22 @@ public class IntegrationTest {
     @DisplayName("게시글 삭제")
     void deleteArticleTest() throws Exception {
 
-        Article article = new Article("password", "title", "content");
+        //given
+        User user = new User("userId", "password", Role.USER);
+        userRepository.save(user);
+
+        Article article = new Article( "title", "content");
+        article.setUser(user);
         articleRepository.save(article);
 
-        mockMvc.perform(post("/article/delete")
-                .param("id", String.valueOf(article.getId()))
-                .param("password", "password"))
+        Collection<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        CustomUserDetails customUserDetails = new CustomUserDetails(user.getId(), "userId", "password", authorities);
+
+        //when&then
+        mockMvc.perform(post("/article/delete/" + article.getId())
+                        .with(user(customUserDetails))
+                        .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/article/list"));
 

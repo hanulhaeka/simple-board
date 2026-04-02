@@ -92,7 +92,7 @@ public class ArticleController {
 
     // 게시글 수정 폼 전달
     @GetMapping(value = "/article/update/{id}")
-    public String getArticleUpdateForm(Model model, @PathVariable Long id) {
+    public String getArticleUpdateForm(@PathVariable Long id, Model model) {
         model.addAttribute("articleDto", articleService.findById(id));
 
         return "article/article-update";
@@ -108,7 +108,7 @@ public class ArticleController {
         }
 
         try {
-            ArticleDto updatedArticleDto = articleService.update(articleDto);
+            articleService.update(articleDto);
         } catch (NotHaveAuthorityException e) {
             bindingResult.reject("updateFail", e.getMessage());
             return "article/article-update";
