@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign Up</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+</head>
+<body>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="w-50 h-75 text-center">
+        <h1 class="title mb-5">Hello Board</h1>
+        <div class="d-flex flex-column justify-content-center align-items-center">
+
+            <h3 class="subheading text-start w-75 mb-5">회원 가입</h3>
+
+            <form class="w-75" th:action="@{/auth/signup}" th:object="${signupDto}" method="post">
+                <div>
+                    <label class="form-label text-start w-100" for="userId">아이디</label>
+                    <input class="form-control" th:classappend="${#fields.hasErrors('userId')}? 'is-invalid'" type="text" id="userId" th:field="*{userId}">
+                    <div class="text-start invalid-feedback" th:if="${#fields.hasErrors('userId')}" th:errors="*{userId}"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-start w-100" for="userId">비밀번호</label>
+                    <input class="form-control" th:classappend="${#fields.hasErrors('password')}? 'is-invalid'" type="password" id="password" th:field="*{password}">
+                    <div class="text-start invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+                <button class="btn btn-success" type="submit">회원 가입</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

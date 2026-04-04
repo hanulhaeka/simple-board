@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,7 +12,14 @@
             <h1 class="title mb-5">Hello Board</h1>
             <div class="nav justify-content-between">
                 <h3 class="subheading">게시글 목록</h3>
-                <a class="btn btn-success" th:href="@{/article/add}">게시글 작성</a>
+                <div class = "d-flex ">
+                    <a sec:authorize="isAnonymous()" class="btn btn-success me-2" th:href="@{/auth/signin}">로그인</a>
+                    <form sec:authorize="isAuthenticated()" th:action="@{/auth/logout}" method="post">
+                        <button class="btn btn-success me-2 h-100" type="submit">로그아웃</button>
+                    </form>
+                    <a sec:authorize="isAnonymous()" class="btn btn-success" th:href="@{/auth/signup}">회원가입</a>
+                    <a sec:authorize="isAuthenticated()" class="btn btn-success" th:href="@{/article/add}">게시글 작성</a>
+                </div>
             </div>
             <table class="table">
                 <tr th:each="article : ${page.content}">
