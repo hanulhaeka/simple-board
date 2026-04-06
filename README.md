@@ -240,6 +240,6 @@ src
 - 그 후 feature/auth-raw 브랜치와 feature/auth-security 브랜치를 만들어서 동일한 인증/인가 기능을 각각 Java/Spring 기반과 Spring Security 기반으로 만들었다.
 - 최종적으로 Spring Security 기반으로 만든 브랜치를 main 브랜치와 병합하였다.
 
-[세션 기반 인증/인가 기능 구현 요약 문서](docs/auth/security_auth_summary.md)
+[세션 기반 인증/인가 기능 구현 요약 문서](docs/auth/raw_auth_summary.md)
 
 [Spring Security 기반 인증/인가 기능 구현 요약 무선](docs/auth/security_auth_summary.md)
